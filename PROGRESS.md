@@ -40,6 +40,13 @@
   - ✅ Helpful error messages
   - ✅ Disabled "Plan Sweep" button when invalid
 
+  9. Better Error Handling
+  - ✅ Automatic retry with exponential backoff (3 attempts)
+  - ✅ Retry button for failed jobs
+  - ✅ Error messages surfaced to UI
+  - ✅ Attempt counter display
+  - ✅ Failed job state recovery
+
 ## 📋 To Do
 
   4. FIBO API Integration

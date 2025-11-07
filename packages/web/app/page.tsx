@@ -35,6 +35,12 @@ type JobStatus = {
   progress?: number
   result?: { url: string; cached: boolean }
   error?: string
+  attemptsMade?: number
+  attemptsTotal?: number
+  json?: any
+  modelVersion?: string
+  seed?: number
+  hash?: string
 }
 
 export default function HomePage() {
@@ -99,8 +105,38 @@ export default function HomePage() {
       body: JSON.stringify({ plan, modelVersion: process.env.NEXT_PUBLIC_MODEL_VERSION || 'fibo-v1' })
     })
     const j = await res.json()
-    setJobs(j.enqueued.map((e: any) => ({ jobId: e.hash, status: 'queued', result: null })))
+    setJobs(j.enqueued.map((e: any, idx: number) => ({
+      jobId: e.hash,
+      status: 'queued',
+      result: null,
+      json: plan[idx].json,
+      modelVersion: process.env.NEXT_PUBLIC_MODEL_VERSION || 'fibo-v1',
+      seed: plan[idx].json.seed ?? 1337,
+      hash: e.hash
+    })))
     setIsPolling(true)
+  }
+
+  async function retryJob(job: JobStatus) {
+    const res = await fetch('/api/retry-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jobId: job.jobId,
+        jobData: {
+          json: job.json,
+          modelVersion: job.modelVersion,
+          seed: job.seed,
+          hash: job.hash
+        }
+      })
+    })
+
+    if (res.ok) {
+      // Update job status to queued and restart polling
+      setJobs(jobs.map(j => j.jobId === job.jobId ? { ...j, status: 'queued', error: undefined } : j))
+      setIsPolling(true)
+    }
   }
 
   async function pollJobStatus() {
@@ -285,8 +321,24 @@ export default function HomePage() {
                     {job.result.cached && <div style={{fontSize: 9, color: '#10b981'}}>✓ Cached</div>}
                   </div>
                 ) : job.status === 'failed' ? (
-                  <div style={{padding: 16, background: '#fee', color: '#dc2626', fontSize: 12, borderRadius: 4}}>
-                    Failed: {job.error || 'Unknown error'}
+                  <div style={{padding: 8, background: '#fee', color: '#dc2626', fontSize: 11, borderRadius: 4}}>
+                    <div style={{marginBottom: 6}}>❌ Failed</div>
+                    {job.attemptsMade && job.attemptsTotal && (
+                      <div style={{fontSize: 9, marginBottom: 6, color: '#991b1b'}}>
+                        Attempts: {job.attemptsMade}/{job.attemptsTotal}
+                      </div>
+                    )}
+                    {job.error && (
+                      <div style={{fontSize: 9, marginBottom: 6, wordBreak: 'break-word'}}>
+                        {job.error.substring(0, 100)}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => retryJob(job)}
+                      style={{padding: '4px 8px', background: '#dc2626', color: 'white', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 10, width: '100%'}}
+                    >
+                      ↻ Retry
+                    </button>
                   </div>
                 ) : job.status === 'active' ? (
                   <div style={{padding: 16, background: '#eff6ff', color: '#0070f3', fontSize: 12, borderRadius: 4, textAlign: 'center'}}>

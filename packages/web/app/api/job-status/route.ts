@@ -15,6 +15,8 @@ export async function POST(req: NextRequest) {
       const progress = job.progress
       const returnvalue = job.returnvalue
       const failedReason = job.failedReason
+      const attemptsMade = job.attemptsMade
+      const attemptsTotal = job.opts?.attempts || 1
 
       return {
         jobId,
@@ -22,6 +24,8 @@ export async function POST(req: NextRequest) {
         progress,
         result: returnvalue,
         error: failedReason,
+        attemptsMade,
+        attemptsTotal,
       }
     })
   )
