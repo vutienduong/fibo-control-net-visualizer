@@ -33,6 +33,13 @@
   - ✅ Studio Lighting preset (intensity + temperature)
   - ✅ Color Palette preset (saturation + warmth)
 
+  10. JSON Schema Validation
+  - ✅ Zod schema for FIBO parameter validation
+  - ✅ Real-time validation on JSON change
+  - ✅ Visual error indicators (red border)
+  - ✅ Helpful error messages
+  - ✅ Disabled "Plan Sweep" button when invalid
+
 ## 📋 To Do
 
   4. FIBO API Integration

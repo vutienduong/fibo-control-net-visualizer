@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { validateFIBOJson } from '@/lib/validation'
 
 const SAMPLE_BASE = {
   seed: 1337,
@@ -45,6 +46,7 @@ export default function HomePage() {
   const [plan, setPlan] = useState<any[]>([])
   const [jobs, setJobs] = useState<JobStatus[]>([])
   const [isPolling, setIsPolling] = useState(false)
+  const [validationError, setValidationError] = useState<string>('')
   const pollingInterval = useRef<NodeJS.Timeout | null>(null)
 
   function loadPreset(presetKey: keyof typeof PRESETS) {
@@ -57,12 +59,29 @@ export default function HomePage() {
     setJobs([])
   }
 
+  function handleBaseChange(newBase: string) {
+    setBase(newBase)
+    const validation = validateFIBOJson(newBase)
+    if (!validation.valid) {
+      setValidationError(validation.error || 'Invalid JSON')
+    } else {
+      setValidationError('')
+    }
+  }
+
   async function planSweep() {
+    // Validate JSON before planning
+    const validation = validateFIBOJson(base)
+    if (!validation.valid) {
+      setValidationError(validation.error || 'Invalid JSON')
+      return
+    }
+
     const res = await fetch('/api/plan-sweep', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        base: JSON.parse(base),
+        base: validation.data,
         sweep: {
           x: { path: xPath, values: xVals.split(',').map(v=>v.trim()).map(Number) },
           y: { path: yPath, values: yVals.split(',').map(v=>v.trim()).map(Number) }
@@ -160,9 +179,14 @@ export default function HomePage() {
           <h2 style={{fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Base JSON</h2>
           <textarea
             value={base}
-            onChange={e=>setBase(e.target.value)}
-            style={{width:'100%', height:260, fontFamily:'monospace', padding: 8, border: '1px solid #ccc', borderRadius: 4}}
+            onChange={e=>handleBaseChange(e.target.value)}
+            style={{width:'100%', height:260, fontFamily:'monospace', padding: 8, border: validationError ? '2px solid #ef4444' : '1px solid #ccc', borderRadius: 4}}
           />
+          {validationError && (
+            <div style={{marginTop: 6, padding: 8, background: '#fee', border: '1px solid #fca5a5', borderRadius: 4, fontSize: 12, color: '#dc2626'}}>
+              ❌ {validationError}
+            </div>
+          )}
           <h3 style={{marginTop:16, fontSize: 16, fontWeight: 'bold', marginBottom: 8}}>Sweep Parameters</h3>
 
           <div style={{display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap'}}>
@@ -199,7 +223,8 @@ export default function HomePage() {
           <div style={{display:'flex', gap:8, marginTop:12}}>
             <button
               onClick={planSweep}
-              style={{padding: '8px 16px', background: '#0070f3', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold'}}
+              disabled={!!validationError}
+              style={{padding: '8px 16px', background: validationError ? '#ccc' : '#0070f3', color: 'white', border: 'none', borderRadius: 4, cursor: validationError ? 'not-allowed' : 'pointer', fontWeight: 'bold'}}
             >
               Plan Sweep
             </button>
