@@ -1,23 +1,35 @@
-  1. Real-time Grid Viewer
+## ✅ Completed
 
-  - Currently, the UI only shows job metadata, not actual rendered images
-  - Need: Live-updating grid that displays images as they complete
-  - Should show loading states for pending jobs
-  - Grid layout based on X/Y sweep parameters
+  1. Real-time Grid Viewer
+  - ✅ Live-updating grid that displays images as they complete
+  - ✅ Loading states for pending jobs (queued, active, completed, failed)
+  - ✅ Grid layout showing all variants
 
   2. Job Status Polling/Updates
-
-  - No way to track job progress after queueing
-  - Need: API endpoint to query job status (/api/job-status)
-  - Frontend polling or Server-Sent Events to update UI
-  - Show: queued → processing → completed/failed states
+  - ✅ API endpoint to query job status (/api/job-status)
+  - ✅ Frontend polling every 2 seconds
+  - ✅ Shows: queued → active → completed/failed states
+  - ✅ Auto-stops polling when all jobs are done
 
   3. Image Display & Thumbnails
+  - ✅ Grid component that fetches and displays /api/images/{hash}.png
+  - ✅ Shows cached status indicator
+  - ✅ Progress bar and counter
 
-  - Images are generated but never displayed
-  - Need: Grid component that fetches and displays /api/images/{hash}.png
-  - Thumbnail generation for faster loading
-  - Click to enlarge functionality
+  8. Environment Configuration
+  - ✅ .env.example file created with all required variables
+
+## 🚧 In Progress
+
+  7. Export Functionality
+  - Button to export completed sweep as ZIP
+  - Should include:
+    - All rendered images
+    - sweep.json (configuration)
+    - variants.csv (metadata table)
+    - base.json (starting point)
+
+## 📋 To Do
 
   4. FIBO API Integration
 
