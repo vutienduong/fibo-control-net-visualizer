@@ -1,0 +1,14 @@
+# Worker Dockerfile
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml* .npmrc* ./ 2>/devnull || true
+COPY packages/worker/package.json packages/worker/package.json
+RUN npm i -g pnpm && pnpm install --filter worker...
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+COPY . .
+RUN npm i -g pnpm && pnpm build:worker
+ENV NODE_ENV=production
+VOLUME ["/data/storage"]
+CMD ["pnpm", "--filter", "worker", "start"]

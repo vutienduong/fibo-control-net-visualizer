@@ -1,0 +1,39 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.web
+    environment:
+      - REDIS_URL=${REDIS_URL}
+      - WEB_PORT=${WEB_PORT:-3000}
+      - MODEL_VERSION=${MODEL_VERSION}
+      - STORAGE_DIR=/data/storage
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      - redis
+    volumes:
+      - storage:/data/storage
+
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.worker
+    environment:
+      - REDIS_URL=${REDIS_URL}
+      - FIBO_API_URL=${FIBO_API_URL}
+      - FIBO_API_KEY=${FIBO_API_KEY}
+      - MODEL_VERSION=${MODEL_VERSION}
+      - STORAGE_DIR=/data/storage
+    depends_on:
+      - redis
+    volumes:
+      - storage:/data/storage
+
+volumes:
+  storage:
