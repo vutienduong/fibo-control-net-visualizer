@@ -10,6 +10,24 @@ const SAMPLE_BASE = {
   subject: { description: "ceramic bottle on linen table" }
 }
 
+const PRESETS = {
+  cinematic: {
+    name: "🎥 Cinematic",
+    x: { path: "camera.fov", values: "20,35,50,65,80" },
+    y: { path: "camera.tilt", values: "-15,-5,0,5,15" },
+  },
+  studio: {
+    name: "💡 Studio Lighting",
+    x: { path: "lights.key.intensity", values: "0.4,0.6,0.8,1.0" },
+    y: { path: "lights.key.temperature", values: "3000,4000,5000,6000,6500" },
+  },
+  color: {
+    name: "🎨 Color Palette",
+    x: { path: "color_palette.saturation", values: "0.2,0.4,0.6,0.8,1.0" },
+    y: { path: "color_palette.warmth", values: "-0.5,-0.25,0,0.25,0.5" },
+  },
+}
+
 type JobStatus = {
   jobId: string
   status: string
@@ -28,6 +46,16 @@ export default function HomePage() {
   const [jobs, setJobs] = useState<JobStatus[]>([])
   const [isPolling, setIsPolling] = useState(false)
   const pollingInterval = useRef<NodeJS.Timeout | null>(null)
+
+  function loadPreset(presetKey: keyof typeof PRESETS) {
+    const preset = PRESETS[presetKey]
+    setXPath(preset.x.path)
+    setXVals(preset.x.values)
+    setYPath(preset.y.path)
+    setYVals(preset.y.values)
+    setPlan([])
+    setJobs([])
+  }
 
   async function planSweep() {
     const res = await fetch('/api/plan-sweep', {
@@ -136,6 +164,20 @@ export default function HomePage() {
             style={{width:'100%', height:260, fontFamily:'monospace', padding: 8, border: '1px solid #ccc', borderRadius: 4}}
           />
           <h3 style={{marginTop:16, fontSize: 16, fontWeight: 'bold', marginBottom: 8}}>Sweep Parameters</h3>
+
+          <div style={{display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap'}}>
+            <span style={{fontSize: 12, color: '#6b7280', alignSelf: 'center'}}>Quick presets:</span>
+            {(Object.keys(PRESETS) as Array<keyof typeof PRESETS>).map(key => (
+              <button
+                key={key}
+                onClick={() => loadPreset(key)}
+                style={{padding: '4px 10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: '500'}}
+              >
+                {PRESETS[key].name}
+              </button>
+            ))}
+          </div>
+
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
             <label style={{display: 'flex', flexDirection: 'column', gap: 4}}>
               <span style={{fontSize: 12, fontWeight: 'bold'}}>X Path</span>

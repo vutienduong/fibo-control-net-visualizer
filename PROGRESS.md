@@ -27,6 +27,12 @@
   8. Environment Configuration
   - ✅ .env.example file created with all required variables
 
+  12. Parameter Presets
+  - ✅ Quick-load buttons for common sweep configurations
+  - ✅ Cinematic preset (FOV + camera tilt)
+  - ✅ Studio Lighting preset (intensity + temperature)
+  - ✅ Color Palette preset (saturation + warmth)
+
 ## 📋 To Do
 
   4. FIBO API Integration
