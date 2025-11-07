@@ -47,6 +47,15 @@
   - ✅ Attempt counter display
   - ✅ Failed job state recovery
 
+  6. Side-by-Side Comparison View
+  - ✅ New /compare page for variant comparison
+  - ✅ Image selection with checkboxes (select 2)
+  - ✅ "Compare Selected" button
+  - ✅ Side-by-side image display
+  - ✅ JSON diff highlighting changes
+  - ✅ Full JSON view for both variants
+  - ✅ Opens in new tab
+
 ## 📋 To Do
 
   4. FIBO API Integration

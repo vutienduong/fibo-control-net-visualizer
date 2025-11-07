@@ -53,6 +53,7 @@ export default function HomePage() {
   const [jobs, setJobs] = useState<JobStatus[]>([])
   const [isPolling, setIsPolling] = useState(false)
   const [validationError, setValidationError] = useState<string>('')
+  const [selectedForCompare, setSelectedForCompare] = useState<number[]>([])
   const pollingInterval = useRef<NodeJS.Timeout | null>(null)
 
   function loadPreset(presetKey: keyof typeof PRESETS) {
@@ -177,6 +178,36 @@ export default function HomePage() {
   const completedJobs = jobs.filter(j => j.status === 'completed' && j.result)
   const progressPercent = jobs.length > 0 ? Math.round((completedJobs.length / jobs.length) * 100) : 0
 
+  function toggleCompareSelection(index: number) {
+    if (selectedForCompare.includes(index)) {
+      setSelectedForCompare(selectedForCompare.filter(i => i !== index))
+    } else if (selectedForCompare.length < 2) {
+      setSelectedForCompare([...selectedForCompare, index])
+    } else {
+      // Replace first selected with new one
+      setSelectedForCompare([selectedForCompare[1], index])
+    }
+  }
+
+  function navigateToCompare() {
+    if (selectedForCompare.length !== 2) return
+
+    const [idx1, idx2] = selectedForCompare
+    const job1 = jobs[idx1]
+    const job2 = jobs[idx2]
+
+    if (!job1.result || !job2.result || !job1.json || !job2.json) return
+
+    const params = new URLSearchParams({
+      img1: job1.result.url,
+      img2: job2.result.url,
+      json1: encodeURIComponent(JSON.stringify(job1.json)),
+      json2: encodeURIComponent(JSON.stringify(job2.json)),
+    })
+
+    window.open(`/compare?${params.toString()}`, '_blank')
+  }
+
   async function exportResults() {
     const sweepConfig = {
       x: { path: xPath, values: xVals.split(',').map(v=>v.trim()).map(Number) },
@@ -292,6 +323,14 @@ export default function HomePage() {
             <div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
               {isPolling && <span style={{fontSize: 14, color: '#0070f3'}}>⟳ Polling...</span>}
               <span style={{fontSize: 14, fontWeight: 'bold'}}>{completedJobs.length} / {jobs.length} completed ({progressPercent}%)</span>
+              {selectedForCompare.length === 2 && (
+                <button
+                  onClick={navigateToCompare}
+                  style={{padding: '6px 12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 'bold'}}
+                >
+                  🔍 Compare Selected
+                </button>
+              )}
               {completedJobs.length > 0 && (
                 <button
                   onClick={exportResults}
@@ -309,15 +348,24 @@ export default function HomePage() {
 
           <div style={{display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:12}}>
             {jobs.map((job, i) => (
-              <div key={job.jobId} style={{border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#fff'}}>
+              <div key={job.jobId} style={{border: selectedForCompare.includes(i) ? '2px solid #f59e0b' : '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#fff', position: 'relative'}}>
                 <div style={{fontSize: 10, color: '#6b7280', marginBottom: 4}}>Variant {i + 1}</div>
                 {job.status === 'completed' && job.result ? (
                   <div>
-                    <img
-                      src={job.result.url}
-                      alt={`Variant ${i + 1}`}
-                      style={{width: '100%', height: 'auto', borderRadius: 4, marginBottom: 4}}
-                    />
+                    <div style={{position: 'relative'}}>
+                      <img
+                        src={job.result.url}
+                        alt={`Variant ${i + 1}`}
+                        style={{width: '100%', height: 'auto', borderRadius: 4, marginBottom: 4, cursor: 'pointer'}}
+                        onClick={() => toggleCompareSelection(i)}
+                      />
+                      <input
+                        type="checkbox"
+                        checked={selectedForCompare.includes(i)}
+                        onChange={() => toggleCompareSelection(i)}
+                        style={{position: 'absolute', top: 6, left: 6, cursor: 'pointer', width: 16, height: 16}}
+                      />
+                    </div>
                     {job.result.cached && <div style={{fontSize: 9, color: '#10b981'}}>✓ Cached</div>}
                   </div>
                 ) : job.status === 'failed' ? (
