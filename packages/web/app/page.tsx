@@ -94,6 +94,35 @@ export default function HomePage() {
   const completedJobs = jobs.filter(j => j.status === 'completed' && j.result)
   const progressPercent = jobs.length > 0 ? Math.round((completedJobs.length / jobs.length) * 100) : 0
 
+  async function exportResults() {
+    const sweepConfig = {
+      x: { path: xPath, values: xVals.split(',').map(v=>v.trim()).map(Number) },
+      y: { path: yPath, values: yVals.split(',').map(v=>v.trim()).map(Number) }
+    }
+
+    const res = await fetch('/api/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jobResults: jobs,
+        baseJson: JSON.parse(base),
+        sweepConfig
+      })
+    })
+
+    if (res.ok) {
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `fibo-sweep-${Date.now()}.zip`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    }
+  }
+
   return (
     <div style={{padding: 16}}>
       <h1 style={{fontSize: 24, fontWeight: 'bold', marginBottom: 16}}>FIBO ControlNet Visualizer</h1>
@@ -160,6 +189,14 @@ export default function HomePage() {
             <div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
               {isPolling && <span style={{fontSize: 14, color: '#0070f3'}}>⟳ Polling...</span>}
               <span style={{fontSize: 14, fontWeight: 'bold'}}>{completedJobs.length} / {jobs.length} completed ({progressPercent}%)</span>
+              {completedJobs.length > 0 && (
+                <button
+                  onClick={exportResults}
+                  style={{padding: '6px 12px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 'bold'}}
+                >
+                  ⬇ Export ZIP
+                </button>
+              )}
             </div>
           </div>
 

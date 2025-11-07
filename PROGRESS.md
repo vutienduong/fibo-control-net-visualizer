@@ -16,18 +16,16 @@
   - ✅ Shows cached status indicator
   - ✅ Progress bar and counter
 
+  7. Export Functionality
+  - ✅ Export button appears when renders complete
+  - ✅ Generates ZIP with all rendered images
+  - ✅ Includes sweep.json (configuration)
+  - ✅ Includes variants.csv (metadata table)
+  - ✅ Includes base.json (starting point)
+  - ✅ Downloads with timestamp filename
+
   8. Environment Configuration
   - ✅ .env.example file created with all required variables
-
-## 🚧 In Progress
-
-  7. Export Functionality
-  - Button to export completed sweep as ZIP
-  - Should include:
-    - All rendered images
-    - sweep.json (configuration)
-    - variants.csv (metadata table)
-    - base.json (starting point)
 
 ## 📋 To Do
 
