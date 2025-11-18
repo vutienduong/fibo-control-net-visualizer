@@ -1,6 +1,9 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { validateFIBOJson } from '@/lib/validation'
+import { saveToHistory, saveCurrentSession, loadCurrentSession, type SweepSession } from '@/lib/history'
+import JsonEditor from './components/JsonEditor'
+import HistoryPanel from './components/HistoryPanel'
 
 const SAMPLE_BASE = {
   seed: 1337,
@@ -56,6 +59,18 @@ export default function HomePage() {
   const [selectedForCompare, setSelectedForCompare] = useState<number[]>([])
   const pollingInterval = useRef<NodeJS.Timeout | null>(null)
 
+  // Load current session on mount
+  useEffect(() => {
+    const session = loadCurrentSession()
+    if (session) {
+      setBase(session.baseJson)
+      setXPath(session.xPath)
+      setXVals(session.xVals)
+      setYPath(session.yPath)
+      setYVals(session.yVals)
+    }
+  }, [])
+
   function loadPreset(presetKey: keyof typeof PRESETS) {
     const preset = PRESETS[presetKey]
     setXPath(preset.x.path)
@@ -64,6 +79,17 @@ export default function HomePage() {
     setYVals(preset.y.values)
     setPlan([])
     setJobs([])
+  }
+
+  function loadFromHistory(session: SweepSession) {
+    setBase(session.baseJson)
+    setXPath(session.xPath)
+    setXVals(session.xVals)
+    setYPath(session.yPath)
+    setYVals(session.yVals)
+    setPlan([])
+    setJobs([])
+    setValidationError('')
   }
 
   function handleBaseChange(newBase: string) {
@@ -97,6 +123,26 @@ export default function HomePage() {
     })
     const j = await res.json()
     setPlan(j.plan)
+
+    // Save to history
+    saveToHistory({
+      baseJson: base,
+      xPath,
+      xVals,
+      yPath,
+      yVals,
+      planCount: j.plan.length,
+    })
+
+    // Save current session for recovery
+    saveCurrentSession({
+      baseJson: base,
+      xPath,
+      xVals,
+      yPath,
+      yVals,
+      planCount: j.plan.length,
+    })
   }
 
   async function queueRenders() {
@@ -238,95 +284,94 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{padding: 16}}>
-      <h1 style={{fontSize: 24, fontWeight: 'bold', marginBottom: 16}}>FIBO ControlNet Visualizer</h1>
-
-      <div style={{display:'grid', gap:16, gridTemplateColumns:'1fr 1fr', marginBottom: 24}}>
-        <section>
-          <h2 style={{fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Base JSON</h2>
-          <textarea
+    <div className="p-4">
+      <div className="grid gap-4 md:grid-cols-2 mb-6">
+        <section className="card">
+          <h2 className="text-xl font-bold mb-4">Base JSON</h2>
+          <JsonEditor
             value={base}
-            onChange={e=>handleBaseChange(e.target.value)}
-            style={{width:'100%', height:260, fontFamily:'monospace', padding: 8, border: validationError ? '2px solid #ef4444' : '1px solid #ccc', borderRadius: 4}}
+            onChange={handleBaseChange}
+            hasError={!!validationError}
+            height="300px"
           />
           {validationError && (
-            <div style={{marginTop: 6, padding: 8, background: '#fee', border: '1px solid #fca5a5', borderRadius: 4, fontSize: 12, color: '#dc2626'}}>
+            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-600">
               ❌ {validationError}
             </div>
           )}
-          <h3 style={{marginTop:16, fontSize: 16, fontWeight: 'bold', marginBottom: 8}}>Sweep Parameters</h3>
+          <h3 className="mt-6 text-lg font-bold mb-3">Sweep Parameters</h3>
 
-          <div style={{display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap'}}>
-            <span style={{fontSize: 12, color: '#6b7280', alignSelf: 'center'}}>Quick presets:</span>
+          <div className="flex gap-2 mb-4 flex-wrap items-center">
+            <span className="text-xs text-gray-500">Quick presets:</span>
             {(Object.keys(PRESETS) as Array<keyof typeof PRESETS>).map(key => (
               <button
                 key={key}
                 onClick={() => loadPreset(key)}
-                style={{padding: '4px 10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: 11, fontWeight: '500'}}
+                className="px-3 py-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 transition-colors text-xs font-medium"
               >
                 {PRESETS[key].name}
               </button>
             ))}
           </div>
 
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-            <label style={{display: 'flex', flexDirection: 'column', gap: 4}}>
-              <span style={{fontSize: 12, fontWeight: 'bold'}}>X Path</span>
-              <input value={xPath} onChange={e=>setXPath(e.target.value)} style={{padding: 6, border: '1px solid #ccc', borderRadius: 4}} />
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-gray-700">X Path</span>
+              <input value={xPath} onChange={e=>setXPath(e.target.value)} className="input py-2 text-sm" />
             </label>
-            <label style={{display: 'flex', flexDirection: 'column', gap: 4}}>
-              <span style={{fontSize: 12, fontWeight: 'bold'}}>X Values</span>
-              <input value={xVals} onChange={e=>setXVals(e.target.value)} style={{padding: 6, border: '1px solid #ccc', borderRadius: 4}} />
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-gray-700">X Values</span>
+              <input value={xVals} onChange={e=>setXVals(e.target.value)} className="input py-2 text-sm" />
             </label>
-            <label style={{display: 'flex', flexDirection: 'column', gap: 4}}>
-              <span style={{fontSize: 12, fontWeight: 'bold'}}>Y Path</span>
-              <input value={yPath} onChange={e=>setYPath(e.target.value)} style={{padding: 6, border: '1px solid #ccc', borderRadius: 4}} />
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-gray-700">Y Path</span>
+              <input value={yPath} onChange={e=>setYPath(e.target.value)} className="input py-2 text-sm" />
             </label>
-            <label style={{display: 'flex', flexDirection: 'column', gap: 4}}>
-              <span style={{fontSize: 12, fontWeight: 'bold'}}>Y Values</span>
-              <input value={yVals} onChange={e=>setYVals(e.target.value)} style={{padding: 6, border: '1px solid #ccc', borderRadius: 4}} />
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-gray-700">Y Values</span>
+              <input value={yVals} onChange={e=>setYVals(e.target.value)} className="input py-2 text-sm" />
             </label>
           </div>
-          <div style={{display:'flex', gap:8, marginTop:12}}>
+          <div className="flex gap-3 mt-4">
             <button
               onClick={planSweep}
               disabled={!!validationError}
-              style={{padding: '8px 16px', background: validationError ? '#ccc' : '#0070f3', color: 'white', border: 'none', borderRadius: 4, cursor: validationError ? 'not-allowed' : 'pointer', fontWeight: 'bold'}}
+              className={`btn ${validationError ? 'bg-gray-400 cursor-not-allowed' : 'btn-primary'}`}
             >
               Plan Sweep
             </button>
             <button
               onClick={queueRenders}
               disabled={!plan.length}
-              style={{padding: '8px 16px', background: plan.length ? '#10b981' : '#ccc', color: 'white', border: 'none', borderRadius: 4, cursor: plan.length ? 'pointer' : 'not-allowed', fontWeight: 'bold'}}
+              className={`btn ${plan.length ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-400 cursor-not-allowed text-white'}`}
             >
               Queue Renders ({plan.length})
             </button>
           </div>
         </section>
 
-        <section>
-          <h2 style={{fontSize: 18, fontWeight: 'bold', marginBottom: 8}}>Planned Variants</h2>
-          <p style={{marginBottom: 8}}>{plan.length} variants</p>
-          <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:6, maxHeight: 360, overflow: 'auto'}}>
+        <section className="card">
+          <h2 className="text-xl font-bold mb-4">Planned Variants</h2>
+          <p className="mb-3 text-gray-700">{plan.length} variants</p>
+          <div className="grid grid-cols-2 gap-2 max-h-96 overflow-auto">
             {plan.slice(0,12).map((p,i)=>(
-              <pre key={i} style={{fontSize:10, background:'#f6f6f6', padding:6, overflow:'auto', maxHeight:120, borderRadius: 4}}>{JSON.stringify(p.deltas, null, 2)}</pre>
+              <pre key={i} className="text-[10px] bg-gray-100 p-2 overflow-auto max-h-32 rounded font-mono">{JSON.stringify(p.deltas, null, 2)}</pre>
             ))}
           </div>
         </section>
       </div>
 
       {jobs.length > 0 && (
-        <section style={{marginTop: 24}}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
-            <h2 style={{fontSize: 18, fontWeight: 'bold'}}>Render Progress</h2>
-            <div style={{display: 'flex', gap: 12, alignItems: 'center'}}>
-              {isPolling && <span style={{fontSize: 14, color: '#0070f3'}}>⟳ Polling...</span>}
-              <span style={{fontSize: 14, fontWeight: 'bold'}}>{completedJobs.length} / {jobs.length} completed ({progressPercent}%)</span>
+        <section className="mt-6">
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+            <h2 className="text-xl font-bold">Render Progress</h2>
+            <div className="flex gap-3 items-center flex-wrap">
+              {isPolling && <span className="text-sm text-primary-600 animate-pulse">⟳ Polling...</span>}
+              <span className="text-sm font-bold text-gray-700">{completedJobs.length} / {jobs.length} completed ({progressPercent}%)</span>
               {selectedForCompare.length === 2 && (
                 <button
                   onClick={navigateToCompare}
-                  style={{padding: '6px 12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 'bold'}}
+                  className="px-3 py-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-xs font-bold"
                 >
                   🔍 Compare Selected
                 </button>
@@ -334,7 +379,7 @@ export default function HomePage() {
               {completedJobs.length > 0 && (
                 <button
                   onClick={exportResults}
-                  style={{padding: '6px 12px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 'bold'}}
+                  className="px-3 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-xs font-bold"
                 >
                   ⬇ Export ZIP
                 </button>
@@ -342,58 +387,58 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div style={{width: '100%', height: 8, background: '#e5e7eb', borderRadius: 4, marginBottom: 16, overflow: 'hidden'}}>
-            <div style={{height: '100%', background: '#10b981', width: `${progressPercent}%`, transition: 'width 0.3s ease'}} />
+          <div className="w-full h-2 bg-gray-200 rounded mb-6 overflow-hidden">
+            <div className="h-full bg-green-600 transition-all duration-300 ease-out" style={{width: `${progressPercent}%`}} />
           </div>
 
-          <div style={{display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:12}}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {jobs.map((job, i) => (
-              <div key={job.jobId} style={{border: selectedForCompare.includes(i) ? '2px solid #f59e0b' : '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#fff', position: 'relative'}}>
-                <div style={{fontSize: 10, color: '#6b7280', marginBottom: 4}}>Variant {i + 1}</div>
+              <div key={job.jobId} className={`rounded-lg p-3 bg-white relative shadow-sm ${selectedForCompare.includes(i) ? 'border-2 border-amber-500 ring-2 ring-amber-200' : 'border border-gray-200'}`}>
+                <div className="text-[10px] text-gray-500 mb-2">Variant {i + 1}</div>
                 {job.status === 'completed' && job.result ? (
                   <div>
-                    <div style={{position: 'relative'}}>
+                    <div className="relative">
                       <img
                         src={job.result.url}
                         alt={`Variant ${i + 1}`}
-                        style={{width: '100%', height: 'auto', borderRadius: 4, marginBottom: 4, cursor: 'pointer'}}
+                        className="w-full h-auto rounded mb-2 cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => toggleCompareSelection(i)}
                       />
                       <input
                         type="checkbox"
                         checked={selectedForCompare.includes(i)}
                         onChange={() => toggleCompareSelection(i)}
-                        style={{position: 'absolute', top: 6, left: 6, cursor: 'pointer', width: 16, height: 16}}
+                        className="absolute top-2 left-2 cursor-pointer w-4 h-4"
                       />
                     </div>
-                    {job.result.cached && <div style={{fontSize: 9, color: '#10b981'}}>✓ Cached</div>}
+                    {job.result.cached && <div className="text-[9px] text-green-600 font-medium">✓ Cached</div>}
                   </div>
                 ) : job.status === 'failed' ? (
-                  <div style={{padding: 8, background: '#fee', color: '#dc2626', fontSize: 11, borderRadius: 4}}>
-                    <div style={{marginBottom: 6}}>❌ Failed</div>
+                  <div className="p-3 bg-red-50 text-red-700 text-[11px] rounded">
+                    <div className="mb-2 font-bold">❌ Failed</div>
                     {job.attemptsMade && job.attemptsTotal && (
-                      <div style={{fontSize: 9, marginBottom: 6, color: '#991b1b'}}>
+                      <div className="text-[9px] mb-2 text-red-800">
                         Attempts: {job.attemptsMade}/{job.attemptsTotal}
                       </div>
                     )}
                     {job.error && (
-                      <div style={{fontSize: 9, marginBottom: 6, wordBreak: 'break-word'}}>
+                      <div className="text-[9px] mb-2 break-words">
                         {job.error.substring(0, 100)}
                       </div>
                     )}
                     <button
                       onClick={() => retryJob(job)}
-                      style={{padding: '4px 8px', background: '#dc2626', color: 'white', border: 'none', borderRadius: 3, cursor: 'pointer', fontSize: 10, width: '100%'}}
+                      className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-[10px] w-full"
                     >
                       ↻ Retry
                     </button>
                   </div>
                 ) : job.status === 'active' ? (
-                  <div style={{padding: 16, background: '#eff6ff', color: '#0070f3', fontSize: 12, borderRadius: 4, textAlign: 'center'}}>
-                    ⟳ Rendering...
+                  <div className="p-6 bg-blue-50 text-primary-600 text-xs rounded text-center">
+                    <div className="animate-spin-slow inline-block">⟳</div> Rendering...
                   </div>
                 ) : (
-                  <div style={{padding: 16, background: '#f9fafb', color: '#6b7280', fontSize: 12, borderRadius: 4, textAlign: 'center'}}>
+                  <div className="p-6 bg-gray-50 text-gray-500 text-xs rounded text-center">
                     ⋯ Queued
                   </div>
                 )}
@@ -402,6 +447,8 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      <HistoryPanel onLoadSession={loadFromHistory} />
     </div>
   )
 }

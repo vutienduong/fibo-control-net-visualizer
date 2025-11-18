@@ -64,31 +64,52 @@
   - ✅ Deployment guide
   - ✅ Project structure overview
 
-## 📋 To Do
-
-### Critical
-
   4. FIBO API Integration
-  - renderWithFIBO() in worker is completely stubbed
-  - Need: Update to match actual FIBO API (docs.bria.ai)
-  - Proper request/response handling
-  - Authentication flow
-  - Error handling for API failures
+  - ✅ Full implementation with Bria API (https://engine.prod.bria-api.com/v2/image/generate)
+  - ✅ Alternative Fal.ai API support (https://fal.run/bria/fibo/generate)
+  - ✅ Configurable API provider via FIBO_API_PROVIDER env variable
+  - ✅ Async polling for long-running requests
+  - ✅ Proper authentication (api_token for Bria, Authorization header for Fal.ai)
+  - ✅ Image download and caching
+  - ✅ Structured prompt and text prompt support
+  - ✅ Configurable parameters (steps, guidance_scale, aspect_ratio)
+
+  16. Better UI/UX
+  - ✅ Tailwind CSS integration (replacing all inline styles)
+  - ✅ Responsive grid layouts with breakpoints (mobile, tablet, desktop)
+  - ✅ Custom component classes (btn, card, input, textarea)
+  - ✅ Smooth transitions and hover effects
+  - ✅ Professional color scheme with primary colors
+  - ✅ Better spacing and typography
+  - ✅ Improved error states and validation UI
+
+  5. Enhanced JSON Editor
+  - ✅ Monaco Editor integration (@monaco-editor/react)
+  - ✅ Syntax highlighting for JSON
+  - ✅ Auto-formatting and auto-completion
+  - ✅ Line numbers and code folding
+  - ✅ Error highlighting with visual borders
+  - ✅ IntelliSense suggestions
+  - ✅ Configurable height (300px default)
+
+  13. History/Sessions
+  - ✅ localStorage-based session persistence
+  - ✅ Automatic saving on sweep planning
+  - ✅ History panel with floating button UI
+  - ✅ View up to 20 previous sweeps
+  - ✅ Load previous configurations with one click
+  - ✅ Delete individual sessions
+  - ✅ Clear all history option
+  - ✅ Session recovery on page reload
+  - ✅ Displays variant count and completion status
+  - ✅ Timestamp for each saved session
+
+## 📋 To Do
 
 ### Nice-to-Have
 
-  5. Enhanced JSON Editor
-  - Monaco Editor integration for better editing experience
-  - Syntax highlighting
-  - Auto-formatting
-
   11. Progress Indicators Enhancement
   - Estimated time remaining calculation
-
-  13. History/Sessions
-  - Save previous sweeps (localStorage or DB)
-  - Re-run past experiments
-  - Browse previous results
 
   14. Advanced Sweep Options
   - Support for more than 2 parameters
@@ -100,11 +121,9 @@
   - Difference view (highlight changed pixels)
   - Metrics: SSIM, LPIPS, perceptual hash
 
-  16. Better UI/UX
-  - Replace inline styles with Tailwind CSS
-  - Add shadcn/ui components (mentioned in PRD)
-  - Responsive mobile layout
-  - Dark mode
+  16. Additional UI/UX Enhancements
+  - Dark mode toggle
+  - shadcn/ui components integration (mentioned in PRD)
 
   17. Performance Optimizations
   - Image compression/optimization
