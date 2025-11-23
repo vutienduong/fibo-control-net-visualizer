@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { SweepParameter } from '@/lib/advancedSweep'
+import { parseValueString } from '@/lib/distributions'
 
 interface AdvancedSweepBuilderProps {
   onParametersChange: (parameters: SweepParameter[]) => void
@@ -40,14 +41,15 @@ export default function AdvancedSweepBuilder({
   }
 
   const updateParameterValues = (id: string, valuesStr: string) => {
-    const values = valuesStr
-      .split(',')
-      .map(v => v.trim())
-      .filter(v => v !== '')
-      .map(Number)
-      .filter(v => !isNaN(v))
-
-    updateParameter(id, 'values', values)
+    try {
+      // Use advanced parser that supports distributions
+      const values = parseValueString(valuesStr)
+      updateParameter(id, 'values', values)
+    } catch (error) {
+      console.error('Failed to parse values:', error)
+      // Fallback to empty array if parsing fails
+      updateParameter(id, 'values', [])
+    }
   }
 
   const getTotalCombinations = () => {

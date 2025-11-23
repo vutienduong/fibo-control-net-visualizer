@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ImageCompareSlider from '../components/ImageCompareSlider'
+import ImageMetrics from '../components/ImageMetrics'
 
 function CompareContent() {
   const searchParams = useSearchParams()
@@ -82,8 +83,11 @@ function CompareContent() {
         />
       </div>
 
+      {/* Image metrics */}
+      <ImageMetrics image1Url={img1} image2Url={img2} />
+
       {/* Images side by side */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid md:grid-cols-2 gap-6 mb-8 mt-8">
         <div className="card">
           <h2 className="text-lg font-bold mb-3">Baseline</h2>
           <img src={img1} alt="Baseline" className="w-full border-2 border-gray-200 rounded-lg shadow-sm" />

@@ -167,11 +167,37 @@
   - ✅ Installation instructions for ComfyUI
   - ✅ Example workflows for common use cases
 
+  19. Advanced Image Comparison Metrics
+  - ✅ SSIM (Structural Similarity Index) implementation
+  - ✅ Perceptual hash calculation with DCT transform
+  - ✅ Pixel difference percentage metric
+  - ✅ ImageMetrics component with color-coded scores
+  - ✅ Progress bar visualization for metrics
+  - ✅ Integration into /compare page
+  - ✅ Canvas-based image analysis
+  - ✅ Dark mode support
+
+  20. Value Distribution Systems
+  - ✅ Linear distribution generation (equally spaced values)
+  - ✅ Logarithmic distribution (base-10 default, configurable)
+  - ✅ Exponential distribution (natural growth curves)
+  - ✅ parseValueString() with multiple notation support:
+    - ✅ Comma-separated: "1,2,3,4,5"
+    - ✅ Range notation: "1-10:5" (start-end:count)
+    - ✅ Distribution notation: "log:1-100:5" or "exp:1-10:5"
+  - ✅ Integration with AdvancedSweepBuilder
+  - ✅ Automatic precision formatting (4 decimal places)
+
+  21. Component Library Infrastructure
+  - ✅ TypeScript path aliases configuration (@/*)
+  - ✅ tsconfig.json baseUrl and paths setup
+  - ✅ Tailwind-based component system with dark mode
+  - ✅ Reusable component classes (card, input, btn, textarea)
+  - ✅ Professional styling with consistent design language
+
 ## 📋 To Do
 
 ### Optional Future Enhancements
 
-  - Advanced image comparison metrics (SSIM, LPIPS, perceptual hash)
-  - shadcn/ui components integration
   - CDN integration for image serving
-  - Non-uniform value distributions (logarithmic scales)
+  - Advanced caching strategies
