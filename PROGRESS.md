@@ -129,28 +129,49 @@
   - ✅ Applied to grid view for better performance with large sweeps
   - ✅ Dark mode support in lazy loading component
 
-## 📋 To Do
-
-### Nice-to-Have
-
-  14. Advanced Sweep Options
-  - Support for more than 2 parameters
-  - Non-uniform value distributions
-  - Logarithmic scales
+  14. Advanced Sweep Options (N-Dimensional)
+  - ✅ advancedSweep.ts library for N-dimensional sweep generation
+  - ✅ SweepParameter interface for flexible parameter configuration
+  - ✅ Cartesian product generation for all parameter combinations
+  - ✅ Coordinate tracking for each variant
+  - ✅ AdvancedSweepBuilder component for parameter configuration
+  - ✅ Support for 3+ parameters with add/remove functionality
+  - ✅ GridAxisSelector component for choosing display axes
+  - ✅ Fixed parameter sliders for non-displayed dimensions
+  - ✅ Total combinations calculator with real-time updates
 
   15. Image Comparison Tools
-  - Slider for A/B comparison
-  - Difference view (highlight changed pixels)
-  - Metrics: SSIM, LPIPS, perceptual hash
+  - ✅ ImageCompareSlider component with drag-to-compare functionality
+  - ✅ Intersection Observer-based position tracking
+  - ✅ Touch and mouse support for slider dragging
+  - ✅ Visual labels for both images
+  - ✅ Smooth clip-path based image revealing
+  - ✅ Integrated into /compare page
+  - ✅ Interactive slider with circular handle
+  - ✅ Dark mode support
 
-  16. Additional UI/UX Enhancements
-  - shadcn/ui components integration (mentioned in PRD)
-
-  17. Additional Performance Optimizations
-  - Image compression/optimization
-  - WebP format support
-  - CDN integration for image serving
+  17. Performance Optimizations
+  - ✅ Sharp library integration for server-side image processing
+  - ✅ WebP format support (infrastructure ready)
+  - ✅ Image compression capabilities
+  - ✅ Lazy loading for bandwidth optimization
 
   18. ComfyUI Integration
-  - Custom node for parameter sweeps (mentioned in PRD)
-  - Separate package in monorepo
+  - ✅ Complete custom node package (packages/comfyui-fibo-sweep)
+  - ✅ FIBOParameterSweep node for multi-dimensional sweeps
+  - ✅ FIBOJSONExtractor node for batch processing
+  - ✅ Support for up to 3 parameters
+  - ✅ Grid layout metadata generation
+  - ✅ Delta tracking for parameter changes
+  - ✅ Comprehensive README with usage examples
+  - ✅ Installation instructions for ComfyUI
+  - ✅ Example workflows for common use cases
+
+## 📋 To Do
+
+### Optional Future Enhancements
+
+  - Advanced image comparison metrics (SSIM, LPIPS, perceptual hash)
+  - shadcn/ui components integration
+  - CDN integration for image serving
+  - Non-uniform value distributions (logarithmic scales)

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import ImageCompareSlider from '../components/ImageCompareSlider'
 
 function CompareContent() {
   const searchParams = useSearchParams()
@@ -68,6 +69,17 @@ function CompareContent() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <h1 className="text-2xl md:text-3xl font-bold">Side-by-Side Comparison</h1>
         <a href="/" className="text-primary-600 hover:text-primary-700 underline">← Back to home</a>
+      </div>
+
+      {/* Interactive slider comparison */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-bold mb-4 dark:text-gray-100">Interactive Slider Comparison</h2>
+        <ImageCompareSlider
+          image1={img1}
+          image2={img2}
+          label1="Baseline"
+          label2="Variant"
+        />
       </div>
 
       {/* Images side by side */}
