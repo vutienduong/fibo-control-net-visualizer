@@ -195,9 +195,78 @@
   - ✅ Reusable component classes (card, input, btn, textarea)
   - ✅ Professional styling with consistent design language
 
+  22. Keyboard Shortcuts
+  - ✅ useKeyboardShortcuts hook for global shortcuts
+  - ✅ Ctrl+Enter to plan sweep or queue renders
+  - ✅ Event handling with modifier key support (Ctrl, Shift, Alt, Meta)
+  - ✅ Shortcut formatting utility for display
+  - ✅ Platform-aware shortcuts (Mac ⌘ vs Ctrl)
+
+  23. Copy to Clipboard
+  - ✅ CopyButton component with visual feedback
+  - ✅ Clipboard API integration
+  - ✅ Success animation (copied state for 2 seconds)
+  - ✅ Copy JSON configuration with one click
+  - ✅ Dark mode support
+
+  24. Preset Import/Export
+  - ✅ PresetManager component for saving/loading configurations
+  - ✅ Export current config as JSON file
+  - ✅ Import preset from JSON file
+  - ✅ Timestamp and metadata in exported presets
+  - ✅ Error handling for invalid preset files
+  - ✅ File picker integration
+
+  25. Individual Image Download
+  - ✅ ImageDownloadButton component for each grid item
+  - ✅ Per-image download functionality
+  - ✅ Custom filename generation (variant-N.png)
+  - ✅ Hover-to-show download button
+  - ✅ Loading state during download
+  - ✅ Blob URL creation and cleanup
+
+  26. Grid Layout Controls
+  - ✅ GridLayoutControls component with live preview
+  - ✅ Adjustable grid columns (2-8 columns)
+  - ✅ Thumbnail size control (small/medium/large)
+  - ✅ localStorage persistence of preferences
+  - ✅ Real-time grid updates
+  - ✅ Responsive grid classes generation
+  - ✅ Dynamic image size classes
+
+  27. CDN Integration
+  - ✅ Multi-provider CDN support:
+    - ✅ CloudFront (AWS)
+    - ✅ Cloudinary with transformations
+    - ✅ Cloudflare Images
+    - ✅ Custom CDN
+  - ✅ URL transformation utilities
+  - ✅ Image format conversion (WebP, AVIF, JPEG, PNG)
+  - ✅ Quality and dimension parameters
+  - ✅ CDN redirect in image API route
+  - ✅ Configuration via environment variables
+  - ✅ Cache header detection (X-Cache, CF-Cache-Status)
+  - ✅ Image preloading utilities
+
+  28. Advanced Caching Strategies
+  - ✅ Multi-layer caching architecture:
+    - ✅ In-memory cache (MemoryCache class)
+    - ✅ IndexedDB cache for persistence
+    - ✅ HTTP cache headers (Cache-Control, ETag)
+  - ✅ Stale-while-revalidate strategy
+  - ✅ TTL-based cache invalidation
+  - ✅ cachedFetch utility for automatic caching
+  - ✅ Cache statistics and monitoring
+  - ✅ Clear all caches functionality
+  - ✅ Prefetch URLs for performance
+  - ✅ CDN cache headers (CDN-Cache-Control, Cloudflare-CDN-Cache-Control)
+  - ✅ 1-year immutable cache for images
+
 ## 📋 To Do
 
 ### Optional Future Enhancements
 
-  - CDN integration for image serving
-  - Advanced caching strategies
+  - Advanced analytics dashboard
+  - Multi-image comparison (3-4 images)
+  - Difference heatmap visualization
+  - Service Worker for offline support

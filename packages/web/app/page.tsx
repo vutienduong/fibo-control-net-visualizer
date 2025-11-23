@@ -2,9 +2,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { validateFIBOJson } from '@/lib/validation'
 import { saveToHistory, saveCurrentSession, loadCurrentSession, type SweepSession } from '@/lib/history'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import JsonEditor from './components/JsonEditor'
 import HistoryPanel from './components/HistoryPanel'
 import LazyImage from './components/LazyImage'
+import CopyButton from './components/CopyButton'
+import PresetManager from './components/PresetManager'
+import GridLayoutControls, { getGridClasses, getImageSizeClass } from './components/GridLayoutControls'
+import ImageDownloadButton from './components/ImageDownloadButton'
 
 const SAMPLE_BASE = {
   seed: 1337,
@@ -62,7 +67,25 @@ export default function HomePage() {
   const [isPolling, setIsPolling] = useState(false)
   const [validationError, setValidationError] = useState<string>('')
   const [selectedForCompare, setSelectedForCompare] = useState<number[]>([])
+  const [gridColumns, setGridColumns] = useState(4)
+  const [gridSize, setGridSize] = useState<'small' | 'medium' | 'large'>('medium')
   const pollingInterval = useRef<NodeJS.Timeout | null>(null)
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'Enter',
+      ctrlKey: true,
+      callback: () => {
+        if (!validationError && plan.length === 0) {
+          planSweep()
+        } else if (plan.length > 0 && jobs.length === 0) {
+          queueRenders()
+        }
+      },
+      description: 'Plan sweep or queue renders'
+    }
+  ])
 
   // Load current session on mount
   useEffect(() => {
@@ -92,6 +115,23 @@ export default function HomePage() {
     setXVals(session.xVals)
     setYPath(session.yPath)
     setYVals(session.yVals)
+    setPlan([])
+    setJobs([])
+    setValidationError('')
+  }
+
+  function handlePresetImport(preset: any) {
+    if (preset.baseJson) {
+      setBase(typeof preset.baseJson === 'string' ? preset.baseJson : JSON.stringify(preset.baseJson, null, 2))
+    }
+    if (preset.xAxis) {
+      setXPath(preset.xAxis.path)
+      setXVals(preset.xAxis.values.join(','))
+    }
+    if (preset.yAxis) {
+      setYPath(preset.yAxis.path)
+      setYVals(preset.yAxis.values.join(','))
+    }
     setPlan([])
     setJobs([])
     setValidationError('')
@@ -344,7 +384,10 @@ export default function HomePage() {
     <div className="p-4">
       <div className="grid gap-4 md:grid-cols-2 mb-6">
         <section className="card">
-          <h2 className="text-xl font-bold mb-4">Base JSON</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Base JSON</h2>
+            <CopyButton text={base} label="Copy JSON" />
+          </div>
           <JsonEditor
             value={base}
             onChange={handleBaseChange}
@@ -352,11 +395,21 @@ export default function HomePage() {
             height="300px"
           />
           {validationError && (
-            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-600">
+            <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-xs text-red-600 dark:text-red-400">
               ❌ {validationError}
             </div>
           )}
-          <h3 className="mt-6 text-lg font-bold mb-3">Sweep Parameters</h3>
+          <div className="flex justify-between items-center mt-6 mb-3">
+            <h3 className="text-lg font-bold">Sweep Parameters</h3>
+            <PresetManager
+              currentConfig={{
+                baseJson: base,
+                xAxis: { path: xPath, values: xVals.split(',').map(v => parseFloat(v.trim())), label: xPath },
+                yAxis: { path: yPath, values: yVals.split(',').map(v => parseFloat(v.trim())), label: yPath }
+              }}
+              onImport={handlePresetImport}
+            />
+          </div>
 
           <div className="flex gap-2 mb-4 flex-wrap items-center">
             <span className="text-xs text-gray-500">Quick presets:</span>
@@ -450,21 +503,28 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="w-full h-2 bg-gray-200 rounded mb-6 overflow-hidden">
-            <div className="h-full bg-green-600 transition-all duration-300 ease-out" style={{width: `${progressPercent}%`}} />
+          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded mb-6 overflow-hidden">
+            <div className="h-full bg-green-600 dark:bg-green-500 transition-all duration-300 ease-out" style={{width: `${progressPercent}%`}} />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="mb-4">
+            <GridLayoutControls
+              onColumnsChange={setGridColumns}
+              onSizeChange={setGridSize}
+            />
+          </div>
+
+          <div className={getGridClasses(gridColumns, gridSize)}>
             {jobs.map((job, i) => (
               <div key={job.jobId} className={`rounded-lg p-3 bg-white dark:bg-gray-800 relative shadow-sm ${selectedForCompare.includes(i) ? 'border-2 border-amber-500 ring-2 ring-amber-200 dark:ring-amber-900' : 'border border-gray-200 dark:border-gray-700'}`}>
                 <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-2">Variant {i + 1}</div>
                 {job.status === 'completed' && job.result ? (
                   <div>
-                    <div className="relative">
+                    <div className="relative group">
                       <LazyImage
                         src={job.result.url}
                         alt={`Variant ${i + 1}`}
-                        className="w-full h-auto rounded mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                        className={`w-full h-auto rounded mb-2 cursor-pointer hover:opacity-90 transition-opacity ${getImageSizeClass(gridSize)}`}
                         onClick={() => toggleCompareSelection(i)}
                       />
                       <input
@@ -472,6 +532,11 @@ export default function HomePage() {
                         checked={selectedForCompare.includes(i)}
                         onChange={() => toggleCompareSelection(i)}
                         className="absolute top-2 left-2 cursor-pointer w-4 h-4 z-10"
+                      />
+                      <ImageDownloadButton
+                        imageUrl={job.result.url}
+                        filename={`variant-${i + 1}.png`}
+                        variant={{ index: i, delta: plan[i]?.deltas }}
                       />
                     </div>
                     {job.result.cached && <div className="text-[9px] text-green-600 dark:text-green-400 font-medium">✓ Cached</div>}
