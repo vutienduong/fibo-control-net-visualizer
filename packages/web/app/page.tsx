@@ -4,6 +4,7 @@ import { validateFIBOJson } from '@/lib/validation'
 import { saveToHistory, saveCurrentSession, loadCurrentSession, type SweepSession } from '@/lib/history'
 import JsonEditor from './components/JsonEditor'
 import HistoryPanel from './components/HistoryPanel'
+import LazyImage from './components/LazyImage'
 
 const SAMPLE_BASE = {
   seed: 1337,
@@ -44,6 +45,10 @@ type JobStatus = {
   modelVersion?: string
   seed?: number
   hash?: string
+  queuedAt?: number
+  startedAt?: number
+  completedAt?: number
+  renderTime?: number
 }
 
 export default function HomePage() {
@@ -146,6 +151,7 @@ export default function HomePage() {
   }
 
   async function queueRenders() {
+    const queueTime = Date.now()
     const res = await fetch('/api/queue-renders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -159,7 +165,8 @@ export default function HomePage() {
       json: plan[idx].json,
       modelVersion: process.env.NEXT_PUBLIC_MODEL_VERSION || 'fibo-v1',
       seed: plan[idx].json.seed ?? 1337,
-      hash: e.hash
+      hash: e.hash,
+      queuedAt: queueTime
     })))
     setIsPolling(true)
   }
@@ -196,10 +203,35 @@ export default function HomePage() {
       body: JSON.stringify({ jobIds })
     })
     const data = await res.json()
-    setJobs(data.statuses)
+
+    // Merge new statuses with existing timestamps
+    const now = Date.now()
+    const updatedJobs = data.statuses.map((newJob: JobStatus) => {
+      const existingJob = jobs.find(j => j.jobId === newJob.jobId)
+      if (!existingJob) return newJob
+
+      const updated = { ...existingJob, ...newJob }
+
+      // Track when job starts rendering (queued -> active)
+      if (existingJob.status === 'queued' && newJob.status === 'active' && !updated.startedAt) {
+        updated.startedAt = now
+      }
+
+      // Track when job completes and calculate render time
+      if (newJob.status === 'completed' && !updated.completedAt) {
+        updated.completedAt = now
+        if (updated.startedAt) {
+          updated.renderTime = now - updated.startedAt
+        }
+      }
+
+      return updated
+    })
+
+    setJobs(updatedJobs)
 
     // Stop polling if all jobs are completed or failed
-    const allDone = data.statuses.every((s: JobStatus) =>
+    const allDone = updatedJobs.every((s: JobStatus) =>
       s.status === 'completed' || s.status === 'failed'
     )
     if (allDone) {
@@ -223,6 +255,31 @@ export default function HomePage() {
 
   const completedJobs = jobs.filter(j => j.status === 'completed' && j.result)
   const progressPercent = jobs.length > 0 ? Math.round((completedJobs.length / jobs.length) * 100) : 0
+
+  // Calculate time estimation
+  const jobsWithRenderTime = jobs.filter(j => j.renderTime && j.renderTime > 0)
+  const avgRenderTime = jobsWithRenderTime.length > 0
+    ? jobsWithRenderTime.reduce((sum, j) => sum + (j.renderTime || 0), 0) / jobsWithRenderTime.length
+    : 0
+  const pendingJobs = jobs.filter(j => j.status === 'queued' || j.status === 'active')
+  const estimatedTimeRemaining = avgRenderTime > 0 && pendingJobs.length > 0
+    ? avgRenderTime * pendingJobs.length
+    : 0
+
+  function formatTime(ms: number): string {
+    if (ms <= 0) return ''
+    const seconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const hours = Math.floor(minutes / 60)
+
+    if (hours > 0) {
+      return `${hours}h ${minutes % 60}m`
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds % 60}s`
+    } else {
+      return `${seconds}s`
+    }
+  }
 
   function toggleCompareSelection(index: number) {
     if (selectedForCompare.includes(index)) {
@@ -368,6 +425,12 @@ export default function HomePage() {
             <div className="flex gap-3 items-center flex-wrap">
               {isPolling && <span className="text-sm text-primary-600 animate-pulse">⟳ Polling...</span>}
               <span className="text-sm font-bold text-gray-700">{completedJobs.length} / {jobs.length} completed ({progressPercent}%)</span>
+              {estimatedTimeRemaining > 0 && (
+                <span className="text-sm text-gray-600">
+                  ⏱ ETA: {formatTime(estimatedTimeRemaining)}
+                  {avgRenderTime > 0 && <span className="text-xs ml-1">({formatTime(avgRenderTime)}/img)</span>}
+                </span>
+              )}
               {selectedForCompare.length === 2 && (
                 <button
                   onClick={navigateToCompare}
@@ -393,12 +456,12 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {jobs.map((job, i) => (
-              <div key={job.jobId} className={`rounded-lg p-3 bg-white relative shadow-sm ${selectedForCompare.includes(i) ? 'border-2 border-amber-500 ring-2 ring-amber-200' : 'border border-gray-200'}`}>
-                <div className="text-[10px] text-gray-500 mb-2">Variant {i + 1}</div>
+              <div key={job.jobId} className={`rounded-lg p-3 bg-white dark:bg-gray-800 relative shadow-sm ${selectedForCompare.includes(i) ? 'border-2 border-amber-500 ring-2 ring-amber-200 dark:ring-amber-900' : 'border border-gray-200 dark:border-gray-700'}`}>
+                <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-2">Variant {i + 1}</div>
                 {job.status === 'completed' && job.result ? (
                   <div>
                     <div className="relative">
-                      <img
+                      <LazyImage
                         src={job.result.url}
                         alt={`Variant ${i + 1}`}
                         className="w-full h-auto rounded mb-2 cursor-pointer hover:opacity-90 transition-opacity"
@@ -408,13 +471,13 @@ export default function HomePage() {
                         type="checkbox"
                         checked={selectedForCompare.includes(i)}
                         onChange={() => toggleCompareSelection(i)}
-                        className="absolute top-2 left-2 cursor-pointer w-4 h-4"
+                        className="absolute top-2 left-2 cursor-pointer w-4 h-4 z-10"
                       />
                     </div>
-                    {job.result.cached && <div className="text-[9px] text-green-600 font-medium">✓ Cached</div>}
+                    {job.result.cached && <div className="text-[9px] text-green-600 dark:text-green-400 font-medium">✓ Cached</div>}
                   </div>
                 ) : job.status === 'failed' ? (
-                  <div className="p-3 bg-red-50 text-red-700 text-[11px] rounded">
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-[11px] rounded">
                     <div className="mb-2 font-bold">❌ Failed</div>
                     {job.attemptsMade && job.attemptsTotal && (
                       <div className="text-[9px] mb-2 text-red-800">
@@ -434,11 +497,11 @@ export default function HomePage() {
                     </button>
                   </div>
                 ) : job.status === 'active' ? (
-                  <div className="p-6 bg-blue-50 text-primary-600 text-xs rounded text-center">
+                  <div className="p-6 bg-blue-50 dark:bg-blue-900/20 text-primary-600 dark:text-primary-400 text-xs rounded text-center">
                     <div className="animate-spin-slow inline-block">⟳</div> Rendering...
                   </div>
                 ) : (
-                  <div className="p-6 bg-gray-50 text-gray-500 text-xs rounded text-center">
+                  <div className="p-6 bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs rounded text-center">
                     ⋯ Queued
                   </div>
                 )}

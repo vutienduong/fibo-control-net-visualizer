@@ -104,12 +104,34 @@
   - ✅ Displays variant count and completion status
   - ✅ Timestamp for each saved session
 
+  11. Progress Indicators Enhancement
+  - ✅ Time tracking for individual jobs (queuedAt, startedAt, completedAt)
+  - ✅ Render time calculation for completed jobs
+  - ✅ Average render time calculation across all completed jobs
+  - ✅ Estimated time remaining (ETA) based on pending jobs
+  - ✅ Time formatting utility (hours, minutes, seconds)
+  - ✅ Display ETA and average time per image in progress section
+
+  16. Dark Mode
+  - ✅ Tailwind dark mode configuration (class strategy)
+  - ✅ DarkModeToggle component with sun/moon icons
+  - ✅ localStorage persistence of dark mode preference
+  - ✅ System preference detection on first load
+  - ✅ Dark mode styles for all components (card, input, textarea, buttons)
+  - ✅ Dark mode colors for all UI elements (text, backgrounds, borders)
+  - ✅ Smooth transitions between light and dark modes
+
+  17. Performance Optimizations - Lazy Loading
+  - ✅ LazyImage component with Intersection Observer API
+  - ✅ Progressive image loading (50px rootMargin)
+  - ✅ Loading spinner while image loads
+  - ✅ Smooth fade-in transition on image load
+  - ✅ Applied to grid view for better performance with large sweeps
+  - ✅ Dark mode support in lazy loading component
+
 ## 📋 To Do
 
 ### Nice-to-Have
-
-  11. Progress Indicators Enhancement
-  - Estimated time remaining calculation
 
   14. Advanced Sweep Options
   - Support for more than 2 parameters
@@ -122,12 +144,10 @@
   - Metrics: SSIM, LPIPS, perceptual hash
 
   16. Additional UI/UX Enhancements
-  - Dark mode toggle
   - shadcn/ui components integration (mentioned in PRD)
 
-  17. Performance Optimizations
+  17. Additional Performance Optimizations
   - Image compression/optimization
-  - Lazy loading for large grids
   - WebP format support
   - CDN integration for image serving
 
