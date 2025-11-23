@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import ImageCompareSlider from '../components/ImageCompareSlider'
+import ImageMetrics from '../components/ImageMetrics'
 
 function CompareContent() {
   const searchParams = useSearchParams()
@@ -56,48 +58,55 @@ function CompareContent() {
 
   if (!img1 || !img2) {
     return (
-      <div style={{padding: 32, textAlign: 'center'}}>
-        <h1 style={{fontSize: 24, fontWeight: 'bold', marginBottom: 16}}>No images to compare</h1>
-        <a href="/" style={{color: '#0070f3', textDecoration: 'underline'}}>← Back to home</a>
+      <div className="p-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">No images to compare</h1>
+        <a href="/" className="text-primary-600 hover:text-primary-700 underline">← Back to home</a>
       </div>
     )
   }
 
   return (
-    <div style={{padding: 16}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
-        <h1 style={{fontSize: 24, fontWeight: 'bold'}}>Side-by-Side Comparison</h1>
-        <a href="/" style={{color: '#0070f3', textDecoration: 'underline'}}>← Back to home</a>
+    <div className="p-4 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Side-by-Side Comparison</h1>
+        <a href="/" className="text-primary-600 hover:text-primary-700 underline">← Back to home</a>
       </div>
 
+      {/* Interactive slider comparison */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-bold mb-4 dark:text-gray-100">Interactive Slider Comparison</h2>
+        <ImageCompareSlider
+          image1={img1}
+          image2={img2}
+          label1="Baseline"
+          label2="Variant"
+        />
+      </div>
+
+      {/* Image metrics */}
+      <ImageMetrics image1Url={img1} image2Url={img2} />
+
       {/* Images side by side */}
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24}}>
-        <div>
-          <h2 style={{fontSize: 16, fontWeight: 'bold', marginBottom: 8}}>Baseline</h2>
-          <img src={img1} alt="Baseline" style={{width: '100%', border: '2px solid #e5e7eb', borderRadius: 8}} />
+      <div className="grid md:grid-cols-2 gap-6 mb-8 mt-8">
+        <div className="card">
+          <h2 className="text-lg font-bold mb-3">Baseline</h2>
+          <img src={img1} alt="Baseline" className="w-full border-2 border-gray-200 rounded-lg shadow-sm" />
         </div>
-        <div>
-          <h2 style={{fontSize: 16, fontWeight: 'bold', marginBottom: 8}}>Variant</h2>
-          <img src={img2} alt="Variant" style={{width: '100%', border: '2px solid #e5e7eb', borderRadius: 8}} />
+        <div className="card">
+          <h2 className="text-lg font-bold mb-3">Variant</h2>
+          <img src={img2} alt="Variant" className="w-full border-2 border-gray-200 rounded-lg shadow-sm" />
         </div>
       </div>
 
       {/* JSON diff */}
       {diff.length > 0 && (
-        <div style={{background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16}}>
-          <h2 style={{fontSize: 18, fontWeight: 'bold', marginBottom: 12}}>Parameter Changes</h2>
-          <div style={{display: 'grid', gap: 8}}>
+        <div className="card bg-gray-50 mb-8">
+          <h2 className="text-xl font-bold mb-4">Parameter Changes</h2>
+          <div className="grid gap-3">
             {diff.map((change, idx) => (
               <div
                 key={idx}
-                style={{
-                  padding: 8,
-                  background: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: 4,
-                  fontFamily: 'monospace',
-                  fontSize: 12,
-                }}
+                className="p-3 bg-white border border-gray-200 rounded font-mono text-xs hover:border-primary-300 transition-colors"
               >
                 {change}
               </div>
@@ -107,16 +116,16 @@ function CompareContent() {
       )}
 
       {/* Full JSON view */}
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 24}}>
-        <div>
-          <h3 style={{fontSize: 14, fontWeight: 'bold', marginBottom: 8}}>Baseline JSON</h3>
-          <pre style={{background: '#f9fafb', padding: 12, borderRadius: 4, fontSize: 11, overflow: 'auto', maxHeight: 300}}>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="card">
+          <h3 className="text-sm font-bold mb-3 text-gray-700">Baseline JSON</h3>
+          <pre className="bg-gray-50 p-4 rounded text-[11px] overflow-auto max-h-96 font-mono border border-gray-200">
             {json1 ? JSON.stringify(json1, null, 2) : 'N/A'}
           </pre>
         </div>
-        <div>
-          <h3 style={{fontSize: 14, fontWeight: 'bold', marginBottom: 8}}>Variant JSON</h3>
-          <pre style={{background: '#f9fafb', padding: 12, borderRadius: 4, fontSize: 11, overflow: 'auto', maxHeight: 300}}>
+        <div className="card">
+          <h3 className="text-sm font-bold mb-3 text-gray-700">Variant JSON</h3>
+          <pre className="bg-gray-50 p-4 rounded text-[11px] overflow-auto max-h-96 font-mono border border-gray-200">
             {json2 ? JSON.stringify(json2, null, 2) : 'N/A'}
           </pre>
         </div>
@@ -127,7 +136,7 @@ function CompareContent() {
 
 export default function ComparePage() {
   return (
-    <Suspense fallback={<div style={{padding: 32}}>Loading comparison...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-gray-600">Loading comparison...</div>}>
       <CompareContent />
     </Suspense>
   )
