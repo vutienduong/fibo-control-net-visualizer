@@ -45,8 +45,6 @@ This is a production-ready application that demonstrates FIBO's controllability 
 3. Worker picks up jobs → Calls FIBO API → Saves images
 4. Frontend polls status → Displays results in real-time
 
-> ⚠️ **Important**: The FIBO API integration is currently a placeholder stub. Update `packages/worker/src/index.ts` with the actual FIBO endpoint from **docs.bria.ai**.
-
 ---
 
 ## 🚀 Quick Start
